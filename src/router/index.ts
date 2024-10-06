@@ -27,10 +27,6 @@ let router = createRouter({
         {
             path: '/video_call',
             component: () => import('../pages/VideoCall.vue')
-        },
-        {
-            path: '/receive_video',
-            component: () => import('../pages/ReceiveVideo.vue')
         }
     ],
     //滚动行为

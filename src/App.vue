@@ -29,12 +29,6 @@
         </el-button>
       </RouterLink>
 
-      <RouterLink to="/receive_video" active-class="active">
-        <el-button style="width: 100%;margin-bottom: 10px" size="large" type="primary">
-          ReceiveVideo
-        </el-button>
-      </RouterLink>
-
     </div>
     <div class="main-right">
       <el-scrollbar>
