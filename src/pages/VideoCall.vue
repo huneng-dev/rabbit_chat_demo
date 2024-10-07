@@ -31,7 +31,9 @@ onUnmounted(() => {
 });
 
 // 信令交换服务器的连接
-let url = `ws://localhost:8080/ws/endpoint?clientId=`
+let url = `wss://chaxun.qmy24.cn/ws/endpoint?clientId=`
+// let url = `ws://localhost:8080/ws/endpoint?clientId=`
+
 let socket: WebSocket | null = null;
 
 /**
@@ -93,24 +95,43 @@ const initWebSocket = () => {
         type: 'answer',
         data: answer
       }));
+
+
+      const maxChunkSize = 10; // 设置一个合适的大小
+      for (let i = 0; i < candidates.length; i += maxChunkSize) {
+        const chunk = candidates.slice(i, i + maxChunkSize);
+        socket!.send(JSON.stringify({
+          clientId: clientId.value,
+          otherId: offerData.clientId,
+          type: 'candidate',
+          data: chunk
+        }));
+      }
     }
 
     if (offerData.type == 'answer') {
       console.log("收到answer")
       const sdpData = JSON.parse(offerData.data); // 解析 data 字符串为对象
       await peerConnection.setRemoteDescription(new RTCSessionDescription({type: sdpData.type, sdp: sdpData.sdp}));
+
       // 将通话发起端的描述文件发送给对方
-      socket!.send(JSON.stringify({
-        clientId: clientId.value,
-        otherId: offerData.clientId,
-        type: 'candidate',
-        data: candidates
-      }))
+      const maxChunkSize = 10; // 设置一个合适的大小
+      for (let i = 0; i < candidates.length; i += maxChunkSize) {
+        const chunk = candidates.slice(i, i + maxChunkSize);
+        socket!.send(JSON.stringify({
+          clientId: clientId.value,
+          otherId: offerData.clientId,
+          type: 'candidate',
+          data: chunk
+        }));
+      }
     }
 
     if (offerData.type == 'candidate') {
       console.log("收到candidate")
       const candidatesData: RTCIceCandidate[] = JSON.parse(offerData.data); // 解析 data 字符串为对象
+
+      console.log(candidatesData)
 
       candidatesData.forEach(can => {
         peerConnection.addIceCandidate(new RTCIceCandidate({
@@ -120,16 +141,6 @@ const initWebSocket = () => {
           usernameFragment: can.usernameFragment
         }));
       })
-
-      if (!isCalling) {
-        // 将通话接听端的描述文件发送给发起方
-        socket!.send(JSON.stringify({
-          clientId: clientId.value,
-          otherId: offerData.clientId,
-          type: 'candidate',
-          data: candidates
-        }))
-      }
     }
 
     // 检测到挂断消息
